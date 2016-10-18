@@ -11,8 +11,22 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.Date;
+
+import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
+import io.realm.Sort;
 
 public class MainActivity extends AppCompatActivity {
+    private Realm mRealm;
+    private RealmResults<Task> mTaskRealmResults;
+    private RealmChangeListener mRealmListener = new RealmChangeListener() {
+        @Override
+        public void onChange() {
+            reloadListView();
+        }
+    };
     private ListView mListView;
     private TaskAdapter mTaskAdapter;
 
@@ -29,6 +43,12 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        // Realmの設定
+        mRealm = Realm.getDefaultInstance();
+        mTaskRealmResults = mRealm.where(Task.class).findAll();
+        mTaskRealmResults.sort("date", Sort.DESCENDING);
+        mRealm.addChangeListener(mRealmListener);
 
         // ListViewの設定
         mTaskAdapter = new TaskAdapter(MainActivity.this);
@@ -53,20 +73,50 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        if (mTaskRealmResults.size() == 0) {
+            // アプリ起動時にタスクの数が0であった場合は表示テスト用のタスクを作成する
+            addTaskForTest();
+        }
+
         reloadListView();
     }
 
     private void reloadListView() {
 
-        // 後でTaskクラスに変更する
-        ArrayList<String> taskArrayList = new ArrayList<>();
-        taskArrayList.add("aaa");
-        taskArrayList.add("bbb");
-        taskArrayList.add("ccc");
+        ArrayList<Task> taskArrayList = new ArrayList<>();
+
+        for (int i = 0; i < mTaskRealmResults.size(); i++) {
+            Task task = new Task();
+
+            task.setId(mTaskRealmResults.get(i).getId());
+            task.setTitle(mTaskRealmResults.get(i).getTitle());
+            task.setContents(mTaskRealmResults.get(i).getContents());
+            task.setDate(mTaskRealmResults.get(i).getDate());
+
+            taskArrayList.add(task);
+        }
 
         mTaskAdapter.setTaskArrayList(taskArrayList);
         mListView.setAdapter(mTaskAdapter);
         mTaskAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        mRealm.close();
+    }
+
+    private void addTaskForTest() {
+        Task task = new Task();
+        task.setTitle("作業");
+        task.setContents("プログラムを書いてPUSHする");
+        task.setDate(new Date());
+        task.setId(0);
+        mRealm.beginTransaction();
+        mRealm.copyToRealmOrUpdate(task);
+        mRealm.commitTransaction();
     }
 
     @Override
