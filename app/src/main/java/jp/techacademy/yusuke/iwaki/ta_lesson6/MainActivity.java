@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private RealmResults<Task> mTaskRealmResults;
     private RealmChangeListener mRealmListener = new RealmChangeListener() {
         @Override
-        public void onChange() {
+        public void onChange(Object element) {
             reloadListView();
         }
     };
