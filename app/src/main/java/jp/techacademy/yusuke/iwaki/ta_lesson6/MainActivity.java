@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                         RealmResults<Task> results = mRealm.where(Task.class).equalTo("id", task.getId()).findAll();
 
                         mRealm.beginTransaction();
-                        results.clear();
+                        results.deleteAllFromRealm();
                         mRealm.commitTransaction();
 
                         reloadListView();
@@ -114,6 +114,8 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<Task> taskArrayList = new ArrayList<>();
 
         for (int i = 0; i < mTaskRealmResults.size(); i++) {
+            if (!mTaskRealmResults.get(i).isValid()) continue;
+
             Task task = new Task();
 
             task.setId(mTaskRealmResults.get(i).getId());
