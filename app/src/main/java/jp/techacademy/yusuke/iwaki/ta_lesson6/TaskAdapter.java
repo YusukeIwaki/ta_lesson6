@@ -8,19 +8,19 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class TaskAdapter extends BaseAdapter{
     private final LayoutInflater mLayoutInflater;
-    private ArrayList<Task> mTaskArrayList;
+    private List<Task> mTaskArrayList;
 
     public TaskAdapter(Context context) {
         mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public void setTaskArrayList(ArrayList<Task> taskArrayList) {
+    public void setTaskArrayList(List<Task> taskArrayList) {
         mTaskArrayList = taskArrayList;
     }
 

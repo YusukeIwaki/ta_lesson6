@@ -12,8 +12,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import java.util.ArrayList;
-
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
@@ -23,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
     public final static String EXTRA_TASK = "jp.techacademy.taro.kirameki.taskapp.TASK";
 
     private Realm mRealm;
-    private RealmResults<Task> mTaskRealmResults;
     private RealmChangeListener mRealmListener = new RealmChangeListener() {
         @Override
         public void onChange(Object element) {
@@ -49,8 +46,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Realmの設定
         mRealm = Realm.getDefaultInstance();
-        mTaskRealmResults = mRealm.where(Task.class).findAll();
-        mTaskRealmResults.sort("date", Sort.DESCENDING);
         mRealm.addChangeListener(mRealmListener);
 
         // ListViewの設定
@@ -94,7 +89,8 @@ public class MainActivity extends AppCompatActivity {
                         results.deleteAllFromRealm();
                         mRealm.commitTransaction();
 
-                        reloadListView();
+                        //reloadListView();
+                        // ↑これはRealmChangeListener経由で呼ばれるから要らないんじゃないかな？
                     }
                 });
                 builder.setNegativeButton("CANCEL", null);
@@ -110,23 +106,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void reloadListView() {
-
-        ArrayList<Task> taskArrayList = new ArrayList<>();
-
-        for (int i = 0; i < mTaskRealmResults.size(); i++) {
-            if (!mTaskRealmResults.get(i).isValid()) continue;
-
-            Task task = new Task();
-
-            task.setId(mTaskRealmResults.get(i).getId());
-            task.setTitle(mTaskRealmResults.get(i).getTitle());
-            task.setContents(mTaskRealmResults.get(i).getContents());
-            task.setDate(mTaskRealmResults.get(i).getDate());
-
-            taskArrayList.add(task);
-        }
-
-        mTaskAdapter.setTaskArrayList(taskArrayList);
+        RealmResults<Task> taskRealmResults = mRealm.where(Task.class).findAllSorted("date", Sort.DESCENDING);
+        mTaskAdapter.setTaskArrayList(mRealm.copyFromRealm(taskRealmResults));
         mListView.setAdapter(mTaskAdapter);
         mTaskAdapter.notifyDataSetChanged();
     }
